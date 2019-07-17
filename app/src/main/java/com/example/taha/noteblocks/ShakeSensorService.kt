@@ -9,6 +9,7 @@ import android.hardware.SensorEventListener
 import android.hardware.SensorManager
 import android.os.IBinder
 import android.os.Vibrator
+import android.util.Log
 import android.widget.Toast
 
 class ShakeSensorService:Service(),SensorEventListener{
@@ -24,7 +25,7 @@ class ShakeSensorService:Service(),SensorEventListener{
     var xold = 0.0
     var yold = 0.0
     var zold = 0.0
-    var threadShould = 3000.0
+    var threadShould = 1510.0
     var oldtime: Long = 0
     override fun onSensorChanged(event: SensorEvent?) {
         //تخزين إحداثيات الجهاز الحالية
@@ -41,7 +42,8 @@ class ShakeSensorService:Service(),SensorEventListener{
             oldtime = currentTime
 
             // يتم تحديد ما إذا كانت سرعة حركة الجهاز كافية لتحديد الأمر عن طريق المعادلة
-            var speed = Math.abs(x + y + z - xold - yold - zold) / timeDiff * 10000
+            var speed = Math.abs(x + y + z - xold - yold - zold) / timeDiff * 5000
+            Log.v("speed = ",""+speed)
             if (speed > threadShould) {
                 var v = getSystemService(Context.VIBRATOR_SERVICE) as Vibrator
                 v.vibrate(300)
@@ -58,12 +60,17 @@ class ShakeSensorService:Service(),SensorEventListener{
         sensorManager = getSystemService(Context.SENSOR_SERVICE) as SensorManager
         sensor = sensorManager!!.getDefaultSensor(Sensor.TYPE_ACCELEROMETER)
         sensorManager!!.registerListener(this, sensor, SensorManager.SENSOR_DELAY_NORMAL)
+        isServiceRunning=true
 
     }
 
     override fun onDestroy() {
         super.onDestroy()
         sensorManager!!.unregisterListener(this)
+        isServiceRunning=false
 
+    }
+    companion object{
+        var isServiceRunning=false
     }
 }

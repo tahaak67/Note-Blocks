@@ -6,7 +6,6 @@ import android.content.Intent
 import android.hardware.Sensor
 import android.hardware.SensorEvent
 import android.hardware.SensorEventListener
-import android.hardware.SensorManager
 import android.support.v7.app.AppCompatActivity
 import android.os.Bundle
 import android.view.Menu
@@ -15,29 +14,16 @@ import android.view.View
 import android.view.ViewGroup
 import android.widget.BaseAdapter
 import android.widget.SearchView
-import android.widget.Toast
-import android.os.Vibrator
 import kotlinx.android.synthetic.main.activity_note_blocks_main.*
 import kotlinx.android.synthetic.main.card.view.*
 
-class NoteBlocksMain : AppCompatActivity(), SensorEventListener {
+class NoteBlocksMain : AppCompatActivity() {
     //
 
-    override fun onAccuracyChanged(sensor: Sensor?, accuracy: Int) {
-        //لسنا بحاجة إليها الأن.
-    }
 
-
-
-    //يتم إستدعاء هذه الدالة في كلما تغيرت قيم الحساسات
-    override fun onSensorChanged(event: SensorEvent?) {
-
-
-    }
 
     // إنشاء arraylist من نوع الكائن Note
     var noteList = ArrayList<Note>()
-//    val shakeintent = Intent(applicationContext,ShakeSensorService::class.java)
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -49,20 +35,20 @@ class NoteBlocksMain : AppCompatActivity(), SensorEventListener {
         super.onResume()
         //
         LoadQuery("%")
-        //e
-       startService(Intent(applicationContext,ShakeSensorService::class.java))
+        //
+        serviceControl()
     }
 
     override fun onPause() {
         super.onPause()
         //
-
+        serviceControl()
     }
 
     override fun onDestroy() {
         super.onDestroy()
 
-       stopService(Intent(applicationContext,ShakeSensorService::class.java))
+
     }
 
     fun LoadQuery(title: String) {
@@ -100,14 +86,12 @@ class NoteBlocksMain : AppCompatActivity(), SensorEventListener {
         sv.setSearchableInfo(sm.getSearchableInfo(componentName))
         sv.setOnQueryTextListener(object : SearchView.OnQueryTextListener {
             override fun onQueryTextSubmit(query: String?): Boolean {
-
-                Toast.makeText(applicationContext, query, Toast.LENGTH_LONG).show()
                 LoadQuery("%" + query + "%")
                 return false
             }
 
             override fun onQueryTextChange(newText: String?): Boolean {
-
+                LoadQuery("%" + newText + "%")
                 return false
             }
         })
@@ -121,8 +105,11 @@ class NoteBlocksMain : AppCompatActivity(), SensorEventListener {
             when (item.itemId) {
                 R.id.addNote -> {
                     //go to new note activity
-                    var newNoteIntent = Intent(this, AddNote::class.java)
+                    val newNoteIntent = Intent(this, AddNote::class.java)
                     startActivity(newNoteIntent)
+                }
+                R.id.settingsbtn -> {
+                    startActivity(Intent(this,Settings::class.java))
                 }
             }
         }
@@ -182,5 +169,15 @@ class NoteBlocksMain : AppCompatActivity(), SensorEventListener {
         newNoteIntent.putExtra("Note_Text", note.noteText)
 
         startActivity(newNoteIntent)
+    }
+    fun serviceControl (){
+        val saveSettings = SaveSettings(this)
+        val isSerChecked = saveSettings.loadSettings()
+        if (isSerChecked) {
+            startService(Intent(applicationContext,ShakeSensorService::class.java))
+        }else {
+            stopService(Intent(applicationContext,ShakeSensorService::class.java))
+        }
+
     }
 }

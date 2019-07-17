@@ -1,6 +1,7 @@
 package com.example.taha.noteblocks
 
 import android.content.ContentValues
+import android.content.Intent
 import android.support.v7.app.AppCompatActivity
 import android.os.Bundle
 import android.view.View
@@ -9,10 +10,15 @@ import kotlinx.android.synthetic.main.activity_add_note.*
 
 class AddNote : AppCompatActivity() {
     var id: Int = 0
+    var changed=false
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_add_note)
 
+        if (ShakeSensorService.isServiceRunning){
+            stopService(Intent(applicationContext,ShakeSensorService::class.java))
+            changed=true
+        }
         try {
 
             //متغير للإحتفاظ ببيانات الملاحظة في حالة التعديل
@@ -37,7 +43,6 @@ class AddNote : AppCompatActivity() {
             var ID = dbManager.insert(values)
             if (ID > 0) {
                 Toast.makeText(this, "تم إضافة الملاحظة بنجاح", Toast.LENGTH_SHORT).show()
-                finish()
             } else {
                 Toast.makeText(this, "حدث خطأ: لم يتم إضافة الملاحظة", Toast.LENGTH_SHORT).show()
             }
@@ -46,11 +51,19 @@ class AddNote : AppCompatActivity() {
             val ID = dbManager.edit(values,"ID=?",selectionArgs)
             if (ID > 0) {
                 Toast.makeText(this, "تم تعديل الملاحظة بنجاح", Toast.LENGTH_SHORT).show()
-                finish()
+
             } else {
                 Toast.makeText(this, "حدث خطأ: لم يتم تعديل الملاحظة", Toast.LENGTH_SHORT).show()
             }
         }
 
+    }
+
+    override fun onPause() {
+        super.onPause()
+        if (changed){
+            startService(Intent(applicationContext,ShakeSensorService::class.java))
+        }
+        finish()
     }
 }

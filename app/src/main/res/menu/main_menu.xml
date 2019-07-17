@@ -9,4 +9,5 @@
             android:title="بحث"
             app:actionViewClass="android.widget.SearchView"
             app:showAsAction="always"/>
+    <item android:id="@+id/settingsbtn" android:title="إعدادات"/>
 </menu>
